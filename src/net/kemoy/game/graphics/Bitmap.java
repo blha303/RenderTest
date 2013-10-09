@@ -19,7 +19,7 @@ public class Bitmap {
 				
 				xp++;
 				
-				if (xp < 0 || yp < 0) continue;
+				if (xp < 0 || yp < 0 || xp >= width || yp >= height) continue;
 				
 				pixels[xp + yp * width] = b.pixels[x + y * b.width];
 				

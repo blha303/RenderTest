@@ -4,6 +4,7 @@ import java.util.Random;
 
 
 public class Screen extends Bitmap {
+	private Bitmap tb;
 	private Bitmap t;
 	
 	private int dx = 0;
@@ -17,21 +18,20 @@ public class Screen extends Bitmap {
 		super(width, height);
 		
 		t = new Bitmap(dw, dh);
+		tb = new Bitmap(dw + 2, dh + 2);
 		
 		for (int i = 0; i < dw * dh; i++) {
 			int r1 = new Random().nextInt(0xFFFF);
-			t.pixels[i] = r1 * i;
+			t.pixels[i] = r1 * i / 8;
 		}
 	}
 	
 	public void render() {
 		for (int i = 0; i < pixels.length; i++) {
-			int r1 = new Random().nextInt(0xFF);
-			int r2 = new Random().nextInt(0xFF);
-			int r3 = new Random().nextInt(0xFF);
-			pixels[i] = r1 + r2 + r3;
+			pixels[i] = 0xFFCC66;
 		}
 
+		draw(tb, dx - 1, dy - 1);
 		draw(t, dx, dy);
 		
 		// X Collisions
