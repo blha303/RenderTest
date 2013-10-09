@@ -27,14 +27,22 @@ public class Screen extends Bitmap {
 			dx++;
 		} else {
 			isFreeX = true;
-			dx--;
+			if (dx > 0) {
+				dx--;
+			} else {
+				isFreeX = false;
+			}
 		}
 		
 		if (dy < (height - bh) && !isFreeY) {
 			dy++;
 		} else {
 			isFreeY = true;
-			dy--;
+			if (dy > 0) {
+				dy--;
+			} else {
+				isFreeY = false;
+			}
 		}
 	}
 }
