@@ -16,8 +16,9 @@ public class Screen extends Bitmap {
 
 	public static void render(Graphics g) {
 		fill();
-
-		draw(new Color(255, 100, 100), dx, dy, bw, bh);
+		
+		drawGradient(new Color(100, 100, 255), width - bw + 16, height - bh + 16, bw, bh);
+		drawGradient(new Color(255, 100, 100), dx, dy, bw, bh);
 
 		Font.drawString("FPS: " + Core.fps, 2 + dx, 12 + dy);
 	}

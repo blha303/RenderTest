@@ -22,7 +22,7 @@ public class Core extends Applet implements Runnable {
 	
 	public static Image canvas;
 	
-	public static String fps = "30";
+	public static int fps = 100; 
 	
 	static boolean running = false;
 	static boolean setup = false;
@@ -49,11 +49,9 @@ public class Core extends Applet implements Runnable {
 	public void run() {
 		canvas = createVolatileImage(size.width, size.height);
 		
-		int frames = 0;
-
 		double unprocessedSeconds = 0;
 		long lastTime = System.nanoTime();
-		double secondsPerTick = 1 / 60.0;
+		double secondsPerTick = 1 / (float)fps; 
 		int tickCount = 0;
 
 		requestFocus();
@@ -76,16 +74,13 @@ public class Core extends Applet implements Runnable {
 				ticked = true;
 
 				tickCount++;
-				if (tickCount % 60 == 0) {
-					fps = "" + frames;
+				if (tickCount % fps == 0) { 
 					lastTime += 1000;
-					frames = 0;
 				}
 			}
 
 			if (ticked) {
 				render();
-				frames++;
 			} else {
 				try {
 					Thread.sleep(1);
