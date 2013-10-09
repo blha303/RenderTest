@@ -1,49 +1,63 @@
 package net.kemoy.game.graphics;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.util.Random;
 
-import net.kemoy.game.Core;
-import net.kemoy.game.gui.Font;
 
 public class Screen extends Bitmap {
-	static int dx = 0;
-	static int dy = 0;
-	static int bw = 64;
-	static int bh = 16;
-	static boolean isFreeX = false;
-	static boolean isFreeY = false;
+	private Bitmap t;
+	
+	private int dx = 0;
+	private int dy = 0;
+	private int dw = 64;
+	private int dh = 64;
+	private boolean isFreeX = false;
+	private boolean isFreeY = false;
 
-	public static void render(Graphics g) {
-		fill();
+	public Screen(int width, int height) {
+		super(width, height);
 		
-		drawGradient(new Color(100, 100, 255), width - bw + 16, height - bh + 16, bw, bh);
-		drawGradient(new Color(255, 100, 100), dx, dy, bw, bh);
-
-		Font.drawString("FPS: " + Core.fps, 2 + dx, 12 + dy);
+		t = new Bitmap(dw, dh);
+		
+		for (int i = 0; i < dw * dh; i++) {
+			int r1 = new Random().nextInt(0xFFFF);
+			t.pixels[i] = r1 * i;
+		}
 	}
 	
-	public static void tick() {
-		if (dx < (width - bw) && !isFreeX) {
+	public void render() {
+		for (int i = 0; i < pixels.length; i++) {
+			int r1 = new Random().nextInt(0xFF);
+			int r2 = new Random().nextInt(0xFF);
+			int r3 = new Random().nextInt(0xFF);
+			pixels[i] = r1 + r2 + r3;
+		}
+
+		draw(t, dx, dy);
+		
+		// X Collisions
+		
+		if ((dx < width - dw) && !isFreeX) {
 			dx++;
 		} else {
+			dx--;
 			isFreeX = true;
-			if (dx > 0) {
-				dx--;
-			} else {
-				isFreeX = false;
-			}
 		}
 		
-		if (dy < (height - bh) && !isFreeY) {
+		if (dx < 0 && isFreeX) {
+			isFreeX = false;
+		}
+		
+		// Y Collisions
+		
+		if ((dy < height - dh) && !isFreeY) {
 			dy++;
 		} else {
+			dy--;
 			isFreeY = true;
-			if (dy > 0) {
-				dy--;
-			} else {
-				isFreeY = false;
-			}
+		}
+		
+		if (dy < 0 && isFreeY) {
+			isFreeY = false;
 		}
 	}
 }

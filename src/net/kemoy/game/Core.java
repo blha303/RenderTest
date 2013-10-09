@@ -1,57 +1,69 @@
 package net.kemoy.game;
 
-import java.applet.Applet;
+import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import net.kemoy.game.graphics.Bitmap;
 import net.kemoy.game.graphics.Screen;
 
-public class Core extends Applet implements Runnable {
+public class Core extends Canvas implements Runnable {
 	private static final long serialVersionUID = 1L;
-	
-	public static int width = 640;
-	public static int height = width / 4 * 3;
-	public static int scale = 3;
-	
-	public static Dimension size = new Dimension(width, height);
-	public static Dimension sized = new Dimension(width / scale, height / scale);
-	
-	public static Image canvas;
-	
-	public static int fps = 100; 
-	
+
+	public static final int WIDTH = 160;
+	public static final int HEIGHT = 120;
+	public static final int SCALE = 4;
+
 	static boolean running = false;
-	static boolean setup = false;
+
+	private BufferedImage canvas;
+	private int[] pixels;
 	
+	private Screen screen;
+
 	public Core() {
+		Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
 		setSize(size);
 		setPreferredSize(size);
 		setMinimumSize(size);
 		setMaximumSize(size);
-	}
-	
-	public void start() {
-		if (!running) running = true;
 
-		new Bitmap();
+		screen = new Screen(WIDTH, HEIGHT);
 		
+		canvas = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+		pixels = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
+	}
+
+	public synchronized void start() {
+		if (running)
+			return;
+		running = true;
 		new Thread(this).start();
 	}
-	
-	public void stop() {
+
+	public synchronized void stop() {
+		if (!running)
+			return;
 		running = false;
+		try {
+			new Thread().join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
-	
+
 	public void run() {
-		canvas = createVolatileImage(size.width, size.height);
-		
+		int frames = 0;
+
 		double unprocessedSeconds = 0;
 		long lastTime = System.nanoTime();
-		double secondsPerTick = 1 / (float)fps; 
+		double secondsPerTick = 1 / 60.0;
 		int tickCount = 0;
 
 		requestFocus();
@@ -74,13 +86,16 @@ public class Core extends Applet implements Runnable {
 				ticked = true;
 
 				tickCount++;
-				if (tickCount % fps == 0) { 
+				if (tickCount % 60 == 0) {
+					System.out.println(frames + " fps");
 					lastTime += 1000;
+					frames = 0;
 				}
 			}
 
 			if (ticked) {
 				render();
+				frames++;
 			} else {
 				try {
 					Thread.sleep(1);
@@ -88,68 +103,48 @@ public class Core extends Applet implements Runnable {
 					e.printStackTrace();
 				}
 			}
+
 		}
 	}
-	
-	public void tick() {
-		Screen.tick();
+
+	private void tick() {
+
 	}
-	
-	public void render() {
-		Graphics g = canvas.getGraphics();
-		
-		if (!setup) {
-			setupCanvas();
+
+	private void render() {
+		BufferStrategy bs = getBufferStrategy();
+		if (bs == null) {
+			createBufferStrategy(3);
+			return;
 		}
 
-		Screen.render(g);
-		
-		g = getGraphics();
-		
-		g.drawImage(canvas, 0, 0, size.width, size.height, 0, 0, sized.width, sized.height, null);
+		screen.render();
+
+		for (int i = 0; i < WIDTH * HEIGHT; i++) {
+			pixels[i] = screen.pixels[i];
+		}
+
+		Graphics g = bs.getDrawGraphics();
+		g.fillRect(0, 0, getWidth(), getHeight());
+		g.drawImage(canvas, 0, 0, WIDTH * SCALE, HEIGHT * SCALE, null);
+		g.dispose();
+		bs.show();
 	}
-	
-	public void setupCanvas() {
-		Bitmap.fill();
-		
-		errPrint("Canvas Setup", Debug.INFO);
-		setup = true;
-	}
-	
+
 	public static void main(String[] args) {
-		// Toolkit t = Toolkit.getDefaultToolkit();
-		// Dimension ss = t.getScreenSize();
-		JFrame frame = new JFrame("3D Test"); 
+		JFrame frame = new JFrame("3D Game!");
 		Core core = new Core();
 		
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.add(core, BorderLayout.CENTER);
+	
+		frame.setContentPane(panel);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// frame.setLocation((ss.width / 2) - (size.width / 2), (ss.height / 2) - (size.height / 2));
-		frame.setLocation(16, 16);
-		frame.add(core);
 		frame.setVisible(true);
-		frame.pack();
 		
 		core.start();
-	}
-	
-	public static void errPrint(String msg, Debug err) {
-		switch(err) {
-		case INFO: 
-			msg = "[INFO] " + msg;
-			break;
-		case WARNING:
-			msg = "[WARNING] " + msg;
-			break;
-		case SEVERE:
-			msg = "[SEVERE] " + msg; 
-			break;
-		}
-		
-		System.out.println(msg);
-	}
-	
-	public enum Debug {
-		INFO, WARNING, SEVERE;
 	}
 }
