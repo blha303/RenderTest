@@ -30,6 +30,7 @@ public class Core extends Canvas implements Runnable {
 	private static JFrame frame;
 	
 	private static String title = "3D Game!";
+	private static int fps = 60;
 
 	public Core() {
 		Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
@@ -67,7 +68,7 @@ public class Core extends Canvas implements Runnable {
 
 		double unprocessedSeconds = 0;
 		long lastTime = System.nanoTime();
-		double secondsPerTick = 1 / 60.0;
+		double secondsPerTick = 1 / (float)fps;
 		int tickCount = 0;
 
 		requestFocus();
@@ -90,8 +91,8 @@ public class Core extends Canvas implements Runnable {
 				ticked = true;
 
 				tickCount++;
-				if (tickCount % 60 == 0) {
-					frame.setTitle(title + " - " + frames + " fps");
+				if (tickCount % fps == 0) {
+					frame.setTitle(String.format("%s - %s fps", title, frames));
 					lastTime += 1000;
 					frames = 0;
 				}
@@ -136,7 +137,7 @@ public class Core extends Canvas implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		frame = new JFrame(title);
+		frame = new JFrame(String.format("%s - %s fps", title, fps));
 		Core core = new Core();
 		
 		JPanel panel = new JPanel(new BorderLayout());
